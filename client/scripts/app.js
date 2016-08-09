@@ -41,14 +41,17 @@ app.clearMessages = function() {
 
 app.addMessage = function(message, addMethod) {
   var roomname = message.roomname || 'general';
+  var text = message.text || '';
   var $message = $('<div data-roomname="' + roomname + '" data-objectId="' + 
     message.objectId + '"></div>');
   $message.addClass('chat');
+
   var $user = $('<span>').addClass('username').text('@' + message.username);
-  var $text = $('<span>').addClass('text').text(message.text);
+  if (JSON.parse(localStorage.friends).indexOf(message.username) >= 0) { $user.addClass('myFriend'); }
+  var $text = $('<span>').addClass('text').text(text.slice(0, 300));
   var $date = $('<span>').addClass('time').text(message.createdAt);
   
-  var $roomname = $('<span>').addClass('roomname').text('#' + roomname);
+  var $roomname = $('<span>').addClass('roomname').text('#' + roomname.slice(0, 25));
   $('#chats')[addMethod]($message.append($text, $user, $date, $roomname));
 };
 
@@ -57,7 +60,15 @@ app.addRoom = function(room) {
 };
 
 app.addFriend = function() {
-  console.log('friend');
+  var friends = JSON.parse(window.localStorage.friends);
+  var username = $(this).text().slice(1);
+  var index = friends.indexOf(username);
+  if (index === -1) {
+    friends.push(username);
+  } else {
+    friends.splice(index, 1);
+  }
+  window.localStorage.friends = JSON.stringify(friends);
 };
 
 app.init = function() {
@@ -68,7 +79,6 @@ app.init = function() {
     for (var i = 0; i < data.results.length; i++) {
       app.addMessage(data.results[i], 'append');
     }
-    console.log(data);
     app.newestMessageDate = data.results[0].createdAt;
   }, query);
 };
@@ -93,10 +103,32 @@ app.update = function() {
 app.init();
 setInterval(app.update, 500);
 
+$(document).on('click', '.username', function() {
+  app.addFriend.call(this);
+  var friends = JSON.parse(localStorage.friends);
+  var username = $(this).text().slice(1);
+  $('.username').each(function(i, e) {
+    var otherUser = $(e).text().slice(1);
+    if (username === otherUser) {
+      $(e).toggleClass('myFriend');
+    }
+  });
+});
+
 $(document).on('click', '.roomname', function(event) {
   app.roomname = $(this).text().slice(1);
+  $('#currentRoom').text(app.roomname);
+  $('input[name="roomname"').val(app.roomname);
   app.clearMessages();
   app.init();
+});
+
+$(document).on('click', '#homeSpan', function(event) {
+  app.clearMessages();
+  app.roomname = null;
+  app.init();
+  $('#currentRoom').text('General');
+  $('input[name="roomname"').val('');
 });
 
 $(document).on('submit', 'form', function(event) {
