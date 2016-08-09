@@ -79,7 +79,31 @@ form input[type=text] {
 
 .roomname {
     float: right;
+    padding: 1px;
+    color: blue;
 }
+
+.roomname:hover {
+    cursor:pointer;
+    text-decoration: underline;
+}
+
+.myFriend {
+    color: red;
+}
+
+#homeSpan {
+    margin-right: 15px;
+    padding: 5px;
+    border: 1px black solid;
+    border-radius: 5px;
+}
+
+#homeSpan:hover {
+    background-color: #ddd;
+    cursor:pointer;
+}
+
 .spinner {
     float: right;
     height: 46px;
