@@ -1,20 +1,18 @@
-// YOUR CODE HERE:
-
 var app = {};
 app.newestMessageDate = null;
 app.url = 'https://api.parse.com/1/classes/messages';
 app.send = function(message, url) {
+  var url = url || app.url;
   $.ajax({
-  // This is the url you should use to communicate with the parse API server.
     url: url,
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/json',
     success: function (data) {
       console.log('chatterbox: Message sent');
+      $('input[type="text"]').val('');
     },
     error: function (data) {
-      // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message', data);
     }
   });
@@ -25,7 +23,6 @@ app.fetch = function(url, cb, data) {
   $.ajax({
     url: url,
     type: 'GET',
-    //data: 'where={"createdAt":"2016-08-09T00:14:39.216Z"}',
     data: data,
     dataType: 'json',
     success: cb,
@@ -39,14 +36,14 @@ app.clearMessages = function() {
   $('#chats').empty();
 };
 
-app.addMessage = function(message) {
-  var messageText = message.text || '';
-  var regex = '/<(|\/|[^>\/bi]|\/[^>bi]|[^\/>][^>]+|\/[^>][^>]+)>/g';
-  var messageText = messageText.replace(regex, '&lt;$1&gt;');
-  $('#chats').append('<div class="message" data-objectId="' + message.objectId +
-      '" data-roomname="' + message.roomname + '"><span class="username"> ' + 
-      message.username + '</span><span class="text"> ' + messageText + 
-    '</span><span class="time"> ' + message.createdAt + '</span></div>');
+app.addMessage = function(message, addMethod) {
+  var $message = $('<div data-roomname="' + message.roomname + '" data-objectId="' + 
+    message.objectId + '"></div>');
+  $message.addClass('message');
+  var $user = $('<span>').addClass('username').text(message.username);
+  var $text = $('<span>').addClass('text').text(message.text);
+  var $date = $('<span>').addClass('time').text(message.createdAt);
+  $('#chats')[addMethod]($message.append($user, $text, $date));
 };
 
 app.addRoom = function(room) {
@@ -54,14 +51,13 @@ app.addRoom = function(room) {
 };
 
 app.addFriend = function() {
-
+  console.log('friend');
 };
 
 app.init = function() {
   app.fetch(app.url, function(data) {
-    //console.log(data);
     for (var i = 0; i < 10; i++) {
-      app.addMessage(data.results[i]);
+      app.addMessage(data.results[i], 'append');
     }
     console.log(data);
     app.newestMessageDate = data.results[0].createdAt;
@@ -69,21 +65,44 @@ app.init = function() {
 };
 
 app.queryNewMessages = function() {
-  //var date = '$gt={"createdAt":"' + app.newestMessageDate + '"}';
-  var date = 'where={"createdAt":{"$gte":{"__type":"Date","iso":"' + app.newestMessageDate + '"}}}';
-  console.log(app.newestMessageDate);
+  var date = 'where={"createdAt":{"$gt":{"__type":"Date","iso":"' + app.newestMessageDate + '"}}}';
   app.fetch(app.url, function(data) {
-    console.log(data.results.length);
+    if (data.results.length > 0) {
+      $('#newMessageCount').show().text('New Messages: ' + data.results.length);
+    }
   }, date);
 };
 
 app.update = function() {
+  var date = 'where={"createdAt":{"$gt":{"__type":"Date","iso":"' + app.newestMessageDate + '"}}}';
+  app.fetch(app.url, function(data) {
+    for (var i = 0; i < data.results.length; i++) {
+      app.addMessage(data.results[i], 'prepend');
+    }
+    if (data.results.length) {
+      app.newestMessageDate = data.results[0].createdAt;
+    }
+  }, date);
 
 };
 
 app.init();
-setInterval(app.queryNewMessages, 2000);
-// $(document).ready(function() {
+setInterval(app.queryNewMessages, 500);
+$(document).on('click', '#newMessageCount', function() {
+  app.update();
+  $('#newMessageCount').hide().text();
+
+});
+
+$(document).on('submit', 'form', function(event) {
+  event.preventDefault();
+  var message = {
+    username: $('input[name="username"').val(),
+    text: $('input[name="message"').val(),
+    roomname: '4chan'
+  };
+
+  app.send(message);
   
-// });
+});
 
