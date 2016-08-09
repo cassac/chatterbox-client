@@ -11,18 +11,20 @@
     <script src="scripts/app.js"></script>
   </head>
   <body>
-  <div class='container'>
     <div id="main">
         <h1>chatterbox</h1>
-        <form method='post'>
-            
+        <form method='post'>         
             <input name='message' type='text' placeholder="Your message here">
             <input name='roomname' type='text' placeholder="Chat room name">
             <input type="submit" value='Submit' class="btn btn-default">
         </form>
+        <div>
+          <span id='homeSpan'>Home</span>
+          You are in room:
+          <span id='currentRoom'>General</span>
+        </div>
     </div>
     <div id='roomSelect'></div>
     <div id="chats"></div>
-  </div>
   </body>
 </html>
