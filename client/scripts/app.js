@@ -37,7 +37,7 @@ app.clearMessages = function() {
 };
 
 app.addMessage = function(message, addMethod) {
-  var $message = $('<div data-roomname="' + message.roomname + '" data-objectId="' + 
+  var $message = $('<div class="col-sm-6 col-sm-offset-4" data-roomname="' + message.roomname + '" data-objectId="' + 
     message.objectId + '"></div>');
   $message.addClass('message');
   var $user = $('<span>').addClass('username').text(message.username);
@@ -68,7 +68,8 @@ app.queryNewMessages = function() {
   var date = 'where={"createdAt":{"$gt":{"__type":"Date","iso":"' + app.newestMessageDate + '"}}}';
   app.fetch(app.url, function(data) {
     if (data.results.length > 0) {
-      $('#newMessageCount').show().text('New Messages: ' + data.results.length);
+      $('#newMessageCountBtn').attr('disabled', false);
+      $('#newMessageCount').text(data.results.length);
     }
   }, date);
 };
@@ -79,7 +80,7 @@ app.update = function() {
     for (var i = 0; i < data.results.length; i++) {
       app.addMessage(data.results[i], 'prepend');
     }
-    if (data.results.length) {
+    if (data.results.length > 0) {
       app.newestMessageDate = data.results[0].createdAt;
     }
   }, date);
@@ -88,9 +89,11 @@ app.update = function() {
 
 app.init();
 setInterval(app.queryNewMessages, 500);
-$(document).on('click', '#newMessageCount', function() {
+
+$(document).on('click', '#newMessageCountBtn', function() {
   app.update();
-  $('#newMessageCount').hide().text();
+  $('#newMessageCountBtn').attr('disabled', true);
+  $('#newMessageCount').text('');
 
 });
 
@@ -99,7 +102,7 @@ $(document).on('submit', 'form', function(event) {
   var message = {
     username: $('input[name="username"').val(),
     text: $('input[name="message"').val(),
-    roomname: '4chan'
+    roomname: $('input[name="roomname"').val(),
   };
 
   app.send(message);
