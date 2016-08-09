@@ -73,6 +73,13 @@ form input[type=text] {
     background-color: #ddd;
 }
 
+.text {
+    display: block;
+}
+
+.roomname {
+    float: right;
+}
 .spinner {
     float: right;
     height: 46px;
